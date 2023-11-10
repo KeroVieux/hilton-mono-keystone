@@ -41,8 +41,20 @@ npm run keystone:dev
 ```
 - graph server: http://localhost:3000/api/graphql
 - admin UI: http://localhost:3000
+
+#### Developing the backend
+1. Open the file `/packages/keystone/schema.ts`.
+2. Follow the document website to update the list in this file.
+3. The framework will auto generate everything it needs.
+4. Visit the admin UI to verify your work.
+
 ### Run the frontend app
 ```shell
 npm run remix:dev
 ```
 - url: http://localhost:3003
+
+#### Developing the frontend
+1. Find the page you need to update in `/packages/remix/app/routee/`.
+2. Follow the React guidance to develop your imagination.
+3. Visit the webapp url on browser to check your work.
