@@ -10,7 +10,7 @@ While the app may not be flawless, it demonstrates my ability to navigate and wo
 
 ## Tech Stack Overview
 - Backend: keystone6 (https://keystonejs.com/)
-- Frontend: Remix (https://remix.run/)
+- Frontend: Remix + Apollo client (https://remix.run/)
 - Database: sqlite
 - Monorepos Tool: Lerna (https://lerna.js.org/)
 
