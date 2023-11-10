@@ -9,7 +9,6 @@ import {CurrentUserContext} from "../contexts.js"
 
 export default function List () {
 	const {currentUser} = useContext(CurrentUserContext)
-	// const [reservations, setReservations] = useState(null)
 	const navigate = useNavigate()
 	if (!currentUser) {
 	  return navigate('/login')
