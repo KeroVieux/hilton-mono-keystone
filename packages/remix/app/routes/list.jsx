@@ -9,7 +9,7 @@ import {CurrentUserContext} from "../contexts.js"
 
 export default function List () {
 	const {currentUser} = useContext(CurrentUserContext)
-	const [reservations, setReservations] = useState(null)
+	// const [reservations, setReservations] = useState(null)
 	const navigate = useNavigate()
 	if (!currentUser) {
 	  return navigate('/login')
@@ -63,16 +63,13 @@ export default function List () {
           }
       }
 	`
-	useQuery(GET_RESERVATIONS, {
+	const { data: reservationRes } = useQuery(GET_RESERVATIONS, {
 		variables,
-		onCompleted(data) {
-			setReservations(data.reservations)
-		},
 	})
 	const handleEdit = (id) => {
 		navigate(`/book?id=${id}`)
 	}
-	if (!reservations?.length) {
+	if (!reservationRes?.reservations?.length) {
 		return (
 			<div className="p-3">
 				<div className="w-full bg-white border border-gray-200 rounded-lg shadow dark:bg-gray-800 dark:border-gray-700">
@@ -91,7 +88,7 @@ export default function List () {
 		return (
 			<div className="p-3">
 				{
-					reservations?.map((item, index) => {
+					reservationRes?.reservations?.map((item, index) => {
 						return (
 							<div onClick={() => {
 								handleEdit(item.id)
