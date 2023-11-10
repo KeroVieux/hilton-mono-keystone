@@ -1,0 +1,17 @@
+{
+  "name": "root",
+  "private": true,
+  "workspaces": [
+    "packages/*"
+  ],
+  "scripts": {
+    "keystone:dev": "lerna run --scope keystone dev",
+    "remix:dev": "lerna run --scope remix dev",
+    "keystone:start": "lerna run --scope keystone start",
+    "remix:start": "lerna run --scope remix serve"
+  },
+  "dependencies": {},
+  "devDependencies": {
+    "lerna": "^7.4.1"
+  }
+}
