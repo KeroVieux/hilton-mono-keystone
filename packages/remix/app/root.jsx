@@ -4,6 +4,7 @@ import {
 	Meta,
 	Outlet,
 	Scripts,
+	useLoaderData,
 } from "@remix-run/react"
 import { useNavigate } from "react-router-dom"
 import {useState, useEffect} from 'react'
@@ -17,11 +18,15 @@ export const links = () => [
 	{ rel: "stylesheet", href: styles },
 ]
 
-const client = await new ApolloClient({
-	uri: 'http://localhost:3000/api/graphql',
-	cache: new InMemoryCache(),
-})
+export async function loader() {
+	return process.env.GRAPHQL_URL
+}
 export default function App() {
+	const graphqlUrl = useLoaderData()
+	const client = new ApolloClient({
+		uri: graphqlUrl,
+		cache: new InMemoryCache(),
+	})
 	const navigate = useNavigate()
 	const [currentUser, setCurrentUser] = useState(null)
 	useEffect(() => {
