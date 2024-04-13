@@ -44,8 +44,7 @@ model Restaurant {
   name                        String        @default("")
   staffs                      User[]        @relation("Restaurant_staffs")
   content                     String        @default("[{\"type\":\"paragraph\",\"children\":[{\"text\":\"\"}]}]")
-  updatedAt                   DateTime?     @default(now())
-  createdAt                   DateTime?     @default(now())
+  logo                        String        @default("")
   from_Reservation_restaurant Reservation[] @relation("Reservation_restaurant")
   from_Table_restaurant       Table[]       @relation("Table_restaurant")
 }

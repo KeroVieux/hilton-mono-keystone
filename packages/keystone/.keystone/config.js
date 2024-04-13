@@ -118,11 +118,22 @@ var lists = {
         links: true,
         dividers: true
       }),
-      updatedAt: (0, import_fields.timestamp)({
-        defaultValue: { kind: "now" }
-      }),
-      createdAt: (0, import_fields.timestamp)({
-        defaultValue: { kind: "now" }
+      logo: (0, import_fields.text)({
+        hooks: {
+          resolveInput: async ({ resolvedData, context }) => {
+            console.log("resolveInput", context);
+            if (resolvedData.logo) {
+              return resolvedData.logo;
+            }
+            return "https://via.placeholder.com/150";
+          },
+          validateInput: async ({ resolvedData, addValidationError }) => {
+            console.log("validateInput", resolvedData);
+            if (!resolvedData.logo) {
+              addValidationError("Logo is required");
+            }
+          }
+        }
       })
     }
   }),

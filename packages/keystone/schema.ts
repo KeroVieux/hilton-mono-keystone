@@ -99,11 +99,20 @@ export const lists: Lists = {
         links: true,
         dividers: true,
       }),
-      updatedAt: timestamp({
-        defaultValue: { kind: 'now' },
-      }),
-      createdAt: timestamp({
-        defaultValue: { kind: 'now' },
+      logo: text({
+        hooks: {
+          resolveInput: async ({ resolvedData, context }) => {
+            if (resolvedData.logo) {
+              return resolvedData.logo;
+            }
+            return 'https://via.placeholder.com/150';
+          },
+          validateInput: async ({ resolvedData, addValidationError }) => {
+            if (!resolvedData.logo) {
+              addValidationError('Logo is required');
+            }
+          }
+        }
       }),
     }
   }),

@@ -8,6 +8,11 @@ import {useQuery, gql} from '@apollo/client/apollo-client.cjs'
 import {CurrentUserContext} from "../contexts.js"
 
 export default function List () {
+	await api.delete.request({
+	    query: {
+	        id: row.id,
+	    }
+	})
 	const {currentUser} = useContext(CurrentUserContext)
 	const navigate = useNavigate()
 	if (!currentUser) {
@@ -68,6 +73,9 @@ export default function List () {
 	const handleEdit = (id) => {
 		navigate(`/book?id=${id}`)
 	}
+	const handleCancel = (id) => {
+		console.log('id', id)
+	}
 	if (!reservationRes?.reservations?.length) {
 		return (
 			<div className="p-3">
@@ -89,9 +97,7 @@ export default function List () {
 				{
 					reservationRes?.reservations?.map((item, index) => {
 						return (
-							<div onClick={() => {
-								handleEdit(item.id)
-							}} key={index} className={`mb-3 bg-white relative block w-full border border-gray-200 rounded-lg shadow dark:bg-gray-800 dark:border-gray-700 dark:hover:bg-gray-700`}>
+							<div key={index} className={`mb-3 bg-white relative block w-full border border-gray-200 rounded-lg shadow dark:bg-gray-800 dark:border-gray-700 dark:hover:bg-gray-700`}>
 								<div className="p-6">
 									<h5 className="mb-2 text-2xl font-bold tracking-tight text-gray-900 dark:text-white">
 										<span className="mr-2">{dayjs(item.expectTime).format('YYYY-MM-DD HH:mm')}</span>
@@ -114,6 +120,23 @@ export default function List () {
 									<p className="font-normal text-gray-700 dark:text-gray-400">
 										Table: {item.table.name}
 									</p>
+									<div className="inline-flex rounded-md shadow-sm pt-6" role="group">
+										<button type="button" className="px-4 py-2 text-sm font-medium text-gray-900 bg-white border border-gray-200 rounded-s-lg hover:bg-gray-100 hover:text-blue-700 focus:z-10 focus:ring-2 focus:ring-blue-700 focus:text-blue-700 dark:bg-gray-700 dark:border-gray-600 dark:text-white
+										dark:hover:text-white dark:hover:bg-gray-600 dark:focus:ring-blue-500 dark:focus:text-white" onClick={() => {
+											handleEdit(item.id)
+										}}
+										>
+											Edit
+										</button>
+										<button type="button" className="px-4 py-2 text-sm font-medium text-gray-900 bg-white border-t border-b border-gray-200 hover:bg-gray-100 hover:text-blue-700 focus:z-10 focus:ring-2 focus:ring-blue-700 focus:text-blue-700 dark:bg-gray-700 dark:border-gray-600 dark:text-white dark:hover:text-white dark:hover:bg-gray-600 dark:focus:ring-blue-500 dark:focus:text-white">
+											Settings
+										</button>
+										<button type="button" className="px-4 py-2 text-sm font-medium text-gray-900 bg-white border border-gray-200 rounded-e-lg hover:bg-gray-100 hover:text-blue-700 focus:z-10 focus:ring-2 focus:ring-blue-700 focus:text-blue-700 dark:bg-gray-700 dark:border-gray-600 dark:text-white dark:hover:text-white dark:hover:bg-gray-600 dark:focus:ring-blue-500 dark:focus:text-white" onClick={() => {
+											handleCancel(item.id)
+										}}>
+											Cancel
+										</button>
+									</div>
 								</div>
 							</div>
 						)

@@ -216,8 +216,7 @@ type Restaurant {
   staffs(where: UserWhereInput! = {}, orderBy: [UserOrderByInput!]! = [], take: Int, skip: Int! = 0, cursor: UserWhereUniqueInput): [User!]
   staffsCount(where: UserWhereInput! = {}): Int
   content: Restaurant_content_Document
-  updatedAt: DateTime
-  createdAt: DateTime
+  logo: String
 }
 
 type Restaurant_content_Document {
@@ -235,8 +234,7 @@ input RestaurantWhereInput {
   id: IDFilter
   name: StringFilter
   staffs: UserManyRelationFilter
-  updatedAt: DateTimeNullableFilter
-  createdAt: DateTimeNullableFilter
+  logo: StringFilter
 }
 
 input UserManyRelationFilter {
@@ -245,30 +243,17 @@ input UserManyRelationFilter {
   none: UserWhereInput
 }
 
-input DateTimeNullableFilter {
-  equals: DateTime
-  in: [DateTime!]
-  notIn: [DateTime!]
-  lt: DateTime
-  lte: DateTime
-  gt: DateTime
-  gte: DateTime
-  not: DateTimeNullableFilter
-}
-
 input RestaurantOrderByInput {
   id: OrderDirection
   name: OrderDirection
-  updatedAt: OrderDirection
-  createdAt: OrderDirection
+  logo: OrderDirection
 }
 
 input RestaurantUpdateInput {
   name: String
   staffs: UserRelateToManyForUpdateInput
   content: JSON
-  updatedAt: DateTime
-  createdAt: DateTime
+  logo: String
 }
 
 input UserRelateToManyForUpdateInput {
@@ -287,8 +272,7 @@ input RestaurantCreateInput {
   name: String
   staffs: UserRelateToManyForCreateInput
   content: JSON
-  updatedAt: DateTime
-  createdAt: DateTime
+  logo: String
 }
 
 input UserRelateToManyForCreateInput {
@@ -348,6 +332,17 @@ input RestaurantManyRelationFilter {
   every: RestaurantWhereInput
   some: RestaurantWhereInput
   none: RestaurantWhereInput
+}
+
+input DateTimeNullableFilter {
+  equals: DateTime
+  in: [DateTime!]
+  notIn: [DateTime!]
+  lt: DateTime
+  lte: DateTime
+  gt: DateTime
+  gte: DateTime
+  not: DateTimeNullableFilter
 }
 
 input UserOrderByInput {
