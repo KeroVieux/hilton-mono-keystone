@@ -217,10 +217,17 @@ type Restaurant {
   staffsCount(where: UserWhereInput! = {}): Int
   content: Restaurant_content_Document
   logo: String
+  features: [featureFields]
 }
 
 type Restaurant_content_Document {
   document(hydrateRelationships: Boolean! = false): JSON!
+}
+
+type featureFields {
+  name: String
+  enabled: Boolean
+  definedBy: String
 }
 
 input RestaurantWhereUniqueInput {
@@ -405,6 +412,237 @@ input RestaurantRelateToManyForCreateInput {
   connect: [RestaurantWhereUniqueInput!]
 }
 
+type Feature {
+  id: ID!
+  name: String
+  description: String
+}
+
+input FeatureWhereUniqueInput {
+  id: ID
+}
+
+input FeatureWhereInput {
+  AND: [FeatureWhereInput!]
+  OR: [FeatureWhereInput!]
+  NOT: [FeatureWhereInput!]
+  id: IDFilter
+  name: StringFilter
+  description: StringFilter
+}
+
+input FeatureOrderByInput {
+  id: OrderDirection
+  name: OrderDirection
+  description: OrderDirection
+}
+
+input FeatureUpdateInput {
+  name: String
+  description: String
+}
+
+input FeatureUpdateArgs {
+  where: FeatureWhereUniqueInput!
+  data: FeatureUpdateInput!
+}
+
+input FeatureCreateInput {
+  name: String
+  description: String
+}
+
+type FeatureToggle {
+  id: ID!
+  feature: Feature
+  enabled: Boolean
+  restaurant(where: RestaurantWhereInput! = {}, orderBy: [RestaurantOrderByInput!]! = [], take: Int, skip: Int! = 0, cursor: RestaurantWhereUniqueInput): [Restaurant!]
+  restaurantCount(where: RestaurantWhereInput! = {}): Int
+}
+
+input FeatureToggleWhereUniqueInput {
+  id: ID
+}
+
+input FeatureToggleWhereInput {
+  AND: [FeatureToggleWhereInput!]
+  OR: [FeatureToggleWhereInput!]
+  NOT: [FeatureToggleWhereInput!]
+  id: IDFilter
+  feature: FeatureWhereInput
+  enabled: BooleanFilter
+  restaurant: RestaurantManyRelationFilter
+}
+
+input FeatureToggleOrderByInput {
+  id: OrderDirection
+  enabled: OrderDirection
+}
+
+input FeatureToggleUpdateInput {
+  feature: FeatureRelateToOneForUpdateInput
+  enabled: Boolean
+  restaurant: RestaurantRelateToManyForUpdateInput
+}
+
+input FeatureRelateToOneForUpdateInput {
+  create: FeatureCreateInput
+  connect: FeatureWhereUniqueInput
+  disconnect: Boolean
+}
+
+input FeatureToggleUpdateArgs {
+  where: FeatureToggleWhereUniqueInput!
+  data: FeatureToggleUpdateInput!
+}
+
+input FeatureToggleCreateInput {
+  feature: FeatureRelateToOneForCreateInput
+  enabled: Boolean
+  restaurant: RestaurantRelateToManyForCreateInput
+}
+
+input FeatureRelateToOneForCreateInput {
+  create: FeatureCreateInput
+  connect: FeatureWhereUniqueInput
+}
+
+type FeatureSchedule {
+  id: ID!
+  name: String
+  restaurant(where: RestaurantWhereInput! = {}, orderBy: [RestaurantOrderByInput!]! = [], take: Int, skip: Int! = 0, cursor: RestaurantWhereUniqueInput): [Restaurant!]
+  restaurantCount(where: RestaurantWhereInput! = {}): Int
+  feature(where: FeatureWhereInput! = {}, orderBy: [FeatureOrderByInput!]! = [], take: Int, skip: Int! = 0, cursor: FeatureWhereUniqueInput): [Feature!]
+  featureCount(where: FeatureWhereInput! = {}): Int
+  schedule(where: ScheduleWhereInput! = {}, orderBy: [ScheduleOrderByInput!]! = [], take: Int, skip: Int! = 0, cursor: ScheduleWhereUniqueInput): [Schedule!]
+  scheduleCount(where: ScheduleWhereInput! = {}): Int
+  enabled: Boolean
+}
+
+input FeatureScheduleWhereUniqueInput {
+  id: ID
+}
+
+input FeatureScheduleWhereInput {
+  AND: [FeatureScheduleWhereInput!]
+  OR: [FeatureScheduleWhereInput!]
+  NOT: [FeatureScheduleWhereInput!]
+  id: IDFilter
+  name: StringFilter
+  restaurant: RestaurantManyRelationFilter
+  feature: FeatureManyRelationFilter
+  schedule: ScheduleManyRelationFilter
+  enabled: BooleanFilter
+}
+
+input FeatureManyRelationFilter {
+  every: FeatureWhereInput
+  some: FeatureWhereInput
+  none: FeatureWhereInput
+}
+
+input ScheduleManyRelationFilter {
+  every: ScheduleWhereInput
+  some: ScheduleWhereInput
+  none: ScheduleWhereInput
+}
+
+input FeatureScheduleOrderByInput {
+  id: OrderDirection
+  name: OrderDirection
+  enabled: OrderDirection
+}
+
+input FeatureScheduleUpdateInput {
+  name: String
+  restaurant: RestaurantRelateToManyForUpdateInput
+  feature: FeatureRelateToManyForUpdateInput
+  schedule: ScheduleRelateToManyForUpdateInput
+  enabled: Boolean
+}
+
+input FeatureRelateToManyForUpdateInput {
+  disconnect: [FeatureWhereUniqueInput!]
+  set: [FeatureWhereUniqueInput!]
+  create: [FeatureCreateInput!]
+  connect: [FeatureWhereUniqueInput!]
+}
+
+input ScheduleRelateToManyForUpdateInput {
+  disconnect: [ScheduleWhereUniqueInput!]
+  set: [ScheduleWhereUniqueInput!]
+  create: [ScheduleCreateInput!]
+  connect: [ScheduleWhereUniqueInput!]
+}
+
+input FeatureScheduleUpdateArgs {
+  where: FeatureScheduleWhereUniqueInput!
+  data: FeatureScheduleUpdateInput!
+}
+
+input FeatureScheduleCreateInput {
+  name: String
+  restaurant: RestaurantRelateToManyForCreateInput
+  feature: FeatureRelateToManyForCreateInput
+  schedule: ScheduleRelateToManyForCreateInput
+  enabled: Boolean
+}
+
+input FeatureRelateToManyForCreateInput {
+  create: [FeatureCreateInput!]
+  connect: [FeatureWhereUniqueInput!]
+}
+
+input ScheduleRelateToManyForCreateInput {
+  create: [ScheduleCreateInput!]
+  connect: [ScheduleWhereUniqueInput!]
+}
+
+type Schedule {
+  id: ID!
+  name: String
+  startedAt: DateTime
+  endedAt: DateTime
+}
+
+input ScheduleWhereUniqueInput {
+  id: ID
+}
+
+input ScheduleWhereInput {
+  AND: [ScheduleWhereInput!]
+  OR: [ScheduleWhereInput!]
+  NOT: [ScheduleWhereInput!]
+  id: IDFilter
+  name: StringFilter
+  startedAt: DateTimeNullableFilter
+  endedAt: DateTimeNullableFilter
+}
+
+input ScheduleOrderByInput {
+  id: OrderDirection
+  name: OrderDirection
+  startedAt: OrderDirection
+  endedAt: OrderDirection
+}
+
+input ScheduleUpdateInput {
+  name: String
+  startedAt: DateTime
+  endedAt: DateTime
+}
+
+input ScheduleUpdateArgs {
+  where: ScheduleWhereUniqueInput!
+  data: ScheduleUpdateInput!
+}
+
+input ScheduleCreateInput {
+  name: String
+  startedAt: DateTime
+  endedAt: DateTime
+}
+
 type Post {
   id: ID!
   title: String
@@ -544,6 +782,30 @@ type Mutation {
   updateUsers(data: [UserUpdateArgs!]!): [User]
   deleteUser(where: UserWhereUniqueInput!): User
   deleteUsers(where: [UserWhereUniqueInput!]!): [User]
+  createFeature(data: FeatureCreateInput!): Feature
+  createFeatures(data: [FeatureCreateInput!]!): [Feature]
+  updateFeature(where: FeatureWhereUniqueInput!, data: FeatureUpdateInput!): Feature
+  updateFeatures(data: [FeatureUpdateArgs!]!): [Feature]
+  deleteFeature(where: FeatureWhereUniqueInput!): Feature
+  deleteFeatures(where: [FeatureWhereUniqueInput!]!): [Feature]
+  createFeatureToggle(data: FeatureToggleCreateInput!): FeatureToggle
+  createFeatureToggles(data: [FeatureToggleCreateInput!]!): [FeatureToggle]
+  updateFeatureToggle(where: FeatureToggleWhereUniqueInput!, data: FeatureToggleUpdateInput!): FeatureToggle
+  updateFeatureToggles(data: [FeatureToggleUpdateArgs!]!): [FeatureToggle]
+  deleteFeatureToggle(where: FeatureToggleWhereUniqueInput!): FeatureToggle
+  deleteFeatureToggles(where: [FeatureToggleWhereUniqueInput!]!): [FeatureToggle]
+  createFeatureSchedule(data: FeatureScheduleCreateInput!): FeatureSchedule
+  createFeatureSchedules(data: [FeatureScheduleCreateInput!]!): [FeatureSchedule]
+  updateFeatureSchedule(where: FeatureScheduleWhereUniqueInput!, data: FeatureScheduleUpdateInput!): FeatureSchedule
+  updateFeatureSchedules(data: [FeatureScheduleUpdateArgs!]!): [FeatureSchedule]
+  deleteFeatureSchedule(where: FeatureScheduleWhereUniqueInput!): FeatureSchedule
+  deleteFeatureSchedules(where: [FeatureScheduleWhereUniqueInput!]!): [FeatureSchedule]
+  createSchedule(data: ScheduleCreateInput!): Schedule
+  createSchedules(data: [ScheduleCreateInput!]!): [Schedule]
+  updateSchedule(where: ScheduleWhereUniqueInput!, data: ScheduleUpdateInput!): Schedule
+  updateSchedules(data: [ScheduleUpdateArgs!]!): [Schedule]
+  deleteSchedule(where: ScheduleWhereUniqueInput!): Schedule
+  deleteSchedules(where: [ScheduleWhereUniqueInput!]!): [Schedule]
   createPost(data: PostCreateInput!): Post
   createPosts(data: [PostCreateInput!]!): [Post]
   updatePost(where: PostWhereUniqueInput!, data: PostUpdateInput!): Post
@@ -591,6 +853,18 @@ type Query {
   users(where: UserWhereInput! = {}, orderBy: [UserOrderByInput!]! = [], take: Int, skip: Int! = 0, cursor: UserWhereUniqueInput): [User!]
   user(where: UserWhereUniqueInput!): User
   usersCount(where: UserWhereInput! = {}): Int
+  features(where: FeatureWhereInput! = {}, orderBy: [FeatureOrderByInput!]! = [], take: Int, skip: Int! = 0, cursor: FeatureWhereUniqueInput): [Feature!]
+  feature(where: FeatureWhereUniqueInput!): Feature
+  featuresCount(where: FeatureWhereInput! = {}): Int
+  featureToggles(where: FeatureToggleWhereInput! = {}, orderBy: [FeatureToggleOrderByInput!]! = [], take: Int, skip: Int! = 0, cursor: FeatureToggleWhereUniqueInput): [FeatureToggle!]
+  featureToggle(where: FeatureToggleWhereUniqueInput!): FeatureToggle
+  featureTogglesCount(where: FeatureToggleWhereInput! = {}): Int
+  featureSchedules(where: FeatureScheduleWhereInput! = {}, orderBy: [FeatureScheduleOrderByInput!]! = [], take: Int, skip: Int! = 0, cursor: FeatureScheduleWhereUniqueInput): [FeatureSchedule!]
+  featureSchedule(where: FeatureScheduleWhereUniqueInput!): FeatureSchedule
+  featureSchedulesCount(where: FeatureScheduleWhereInput! = {}): Int
+  schedules(where: ScheduleWhereInput! = {}, orderBy: [ScheduleOrderByInput!]! = [], take: Int, skip: Int! = 0, cursor: ScheduleWhereUniqueInput): [Schedule!]
+  schedule(where: ScheduleWhereUniqueInput!): Schedule
+  schedulesCount(where: ScheduleWhereInput! = {}): Int
   posts(where: PostWhereInput! = {}, orderBy: [PostOrderByInput!]! = [], take: Int, skip: Int! = 0, cursor: PostWhereUniqueInput): [Post!]
   post(where: PostWhereUniqueInput!): Post
   postsCount(where: PostWhereInput! = {}): Int

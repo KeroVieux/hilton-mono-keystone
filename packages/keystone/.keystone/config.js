@@ -28,6 +28,7 @@ var import_core2 = require("@keystone-6/core");
 // schema.ts
 var import_core = require("@keystone-6/core");
 var import_access = require("@keystone-6/core/access");
+var import_lodash = require("lodash");
 var import_fields = require("@keystone-6/core/fields");
 var import_fields_document = require("@keystone-6/fields-document");
 var lists = {
@@ -121,18 +122,102 @@ var lists = {
       logo: (0, import_fields.text)({
         hooks: {
           resolveInput: async ({ resolvedData, context }) => {
-            console.log("resolveInput", context);
             if (resolvedData.logo) {
               return resolvedData.logo;
             }
             return "https://via.placeholder.com/150";
           },
           validateInput: async ({ resolvedData, addValidationError }) => {
-            console.log("validateInput", resolvedData);
             if (!resolvedData.logo) {
               addValidationError("Logo is required");
             }
           }
+        }
+      }),
+      features: (0, import_fields.virtual)({
+        field: import_core.graphql.field({
+          type: import_core.graphql.list(
+            import_core.graphql.object()({
+              name: "featureFields",
+              fields: {
+                name: import_core.graphql.field({ type: import_core.graphql.String }),
+                enabled: import_core.graphql.field({ type: import_core.graphql.Boolean }),
+                definedBy: import_core.graphql.field({ type: import_core.graphql.String })
+              }
+            })
+          ),
+          async resolve(item, _, context, info) {
+            const permenantFeatureToggles = await context.query.FeatureToggle.findMany({
+              where: {
+                "restaurant": {
+                  "some": {
+                    "id": {
+                      "equals": item.id
+                    }
+                  }
+                }
+              },
+              orderBy: [{
+                id: "desc"
+              }],
+              query: "enabled feature{name}"
+            });
+            let features = [];
+            if (permenantFeatureToggles.length) {
+              permenantFeatureToggles.forEach((featureToggle) => {
+                features.push({
+                  name: featureToggle.feature.name,
+                  enabled: featureToggle.enabled,
+                  definedBy: "permenant"
+                });
+              });
+              features = (0, import_lodash.uniqBy)(features, "name");
+            }
+            const featureSchedules = await context.query.FeatureSchedule.findMany({
+              where: {
+                "restaurant": {
+                  "some": {
+                    "id": {
+                      "equals": item.id
+                    }
+                  }
+                },
+                "schedule": {
+                  "some": {
+                    "startedAt": {
+                      "lte": /* @__PURE__ */ new Date()
+                    },
+                    "endedAt": {
+                      "gte": /* @__PURE__ */ new Date()
+                    }
+                  }
+                }
+              },
+              orderBy: [{
+                id: "asc"
+              }],
+              query: "enabled feature{name}"
+            });
+            if (featureSchedules.length) {
+              featureSchedules.forEach((schedule) => {
+                schedule.feature.forEach((feature) => {
+                  features.push({
+                    name: feature.name,
+                    enabled: schedule.enabled,
+                    definedBy: "scheduled"
+                  });
+                });
+              });
+            }
+            features.reverse();
+            return (0, import_lodash.uniqBy)(features, "name");
+          }
+        }),
+        ui: {
+          query: "{ name enabled definedBy }",
+          createView: { fieldMode: "hidden" },
+          itemView: { fieldMode: "read" },
+          listView: { fieldMode: "hidden" }
         }
       })
     }
@@ -152,6 +237,44 @@ var lists = {
       restaurants: (0, import_fields.relationship)({ ref: "Restaurant.staffs", many: true }),
       createdAt: (0, import_fields.timestamp)({
         defaultValue: { kind: "now" }
+      })
+    }
+  }),
+  Feature: (0, import_core.list)({
+    access: import_access.allowAll,
+    fields: {
+      name: (0, import_fields.text)({ validation: { isRequired: true } }),
+      description: (0, import_fields.text)()
+    }
+  }),
+  FeatureToggle: (0, import_core.list)({
+    access: import_access.allowAll,
+    fields: {
+      feature: (0, import_fields.relationship)({ ref: "Feature", many: false }),
+      enabled: (0, import_fields.checkbox)(),
+      restaurant: (0, import_fields.relationship)({ ref: "Restaurant", many: true })
+    }
+  }),
+  FeatureSchedule: (0, import_core.list)({
+    access: import_access.allowAll,
+    fields: {
+      name: (0, import_fields.text)({ validation: { isRequired: true } }),
+      restaurant: (0, import_fields.relationship)({ ref: "Restaurant", many: true }),
+      feature: (0, import_fields.relationship)({ ref: "Feature", many: true }),
+      schedule: (0, import_fields.relationship)({ ref: "Schedule", many: true }),
+      enabled: (0, import_fields.checkbox)()
+    }
+  }),
+  Schedule: (0, import_core.list)({
+    access: import_access.allowAll,
+    fields: {
+      name: (0, import_fields.text)({ validation: { isRequired: true } }),
+      startedAt: (0, import_fields.timestamp)({
+        defaultValue: { kind: "now" },
+        isIndexed: true
+      }),
+      endedAt: (0, import_fields.timestamp)({
+        isIndexed: true
       })
     }
   }),

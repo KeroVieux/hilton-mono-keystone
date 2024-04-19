@@ -40,13 +40,15 @@ model Table {
 }
 
 model Restaurant {
-  id                          String        @id @default(cuid())
-  name                        String        @default("")
-  staffs                      User[]        @relation("Restaurant_staffs")
-  content                     String        @default("[{\"type\":\"paragraph\",\"children\":[{\"text\":\"\"}]}]")
-  logo                        String        @default("")
-  from_Reservation_restaurant Reservation[] @relation("Reservation_restaurant")
-  from_Table_restaurant       Table[]       @relation("Table_restaurant")
+  id                              String            @id @default(cuid())
+  name                            String            @default("")
+  staffs                          User[]            @relation("Restaurant_staffs")
+  content                         String            @default("[{\"type\":\"paragraph\",\"children\":[{\"text\":\"\"}]}]")
+  logo                            String            @default("")
+  from_Reservation_restaurant     Reservation[]     @relation("Reservation_restaurant")
+  from_Table_restaurant           Table[]           @relation("Table_restaurant")
+  from_FeatureToggle_restaurant   FeatureToggle[]   @relation("FeatureToggle_restaurant")
+  from_FeatureSchedule_restaurant FeatureSchedule[] @relation("FeatureSchedule_restaurant")
 }
 
 model User {
@@ -60,6 +62,44 @@ model User {
   restaurants            Restaurant[]  @relation("Restaurant_staffs")
   createdAt              DateTime?     @default(now())
   from_Reservation_guest Reservation[] @relation("Reservation_guest")
+}
+
+model Feature {
+  id                           String            @id @default(cuid())
+  name                         String            @default("")
+  description                  String            @default("")
+  from_FeatureToggle_feature   FeatureToggle[]   @relation("FeatureToggle_feature")
+  from_FeatureSchedule_feature FeatureSchedule[] @relation("FeatureSchedule_feature")
+}
+
+model FeatureToggle {
+  id         String       @id @default(cuid())
+  feature    Feature?     @relation("FeatureToggle_feature", fields: [featureId], references: [id])
+  featureId  String?      @map("feature")
+  enabled    Boolean      @default(false)
+  restaurant Restaurant[] @relation("FeatureToggle_restaurant")
+
+  @@index([featureId])
+}
+
+model FeatureSchedule {
+  id         String       @id @default(cuid())
+  name       String       @default("")
+  restaurant Restaurant[] @relation("FeatureSchedule_restaurant")
+  feature    Feature[]    @relation("FeatureSchedule_feature")
+  schedule   Schedule[]   @relation("FeatureSchedule_schedule")
+  enabled    Boolean      @default(false)
+}
+
+model Schedule {
+  id                            String            @id @default(cuid())
+  name                          String            @default("")
+  startedAt                     DateTime?         @default(now())
+  endedAt                       DateTime?
+  from_FeatureSchedule_schedule FeatureSchedule[] @relation("FeatureSchedule_schedule")
+
+  @@index([startedAt])
+  @@index([endedAt])
 }
 
 model Post {

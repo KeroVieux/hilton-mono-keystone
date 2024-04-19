@@ -10,7 +10,9 @@
     "keystone:start": "lerna run --scope keystone start",
     "remix:start": "lerna run --scope remix serve"
   },
-  "dependencies": {},
+  "dependencies": {
+    "lodash": "^4.17.21"
+  },
   "devDependencies": {
     "lerna": "^7.4.1"
   }
