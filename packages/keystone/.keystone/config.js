@@ -314,6 +314,7 @@ var lists = {
             import_core.graphql.object()({
               name: "outputFields",
               fields: {
+                id: import_core.graphql.field({ type: import_core.graphql.String }),
                 startedAt: import_core.graphql.field({ type: import_core.graphql.String }),
                 endedAt: import_core.graphql.field({ type: import_core.graphql.String }),
                 cron: import_core.graphql.field({ type: import_core.graphql.String })
@@ -329,15 +330,17 @@ var lists = {
                 },
                 query: "id merger{id startedAt endedAt cron}"
               });
-              return fullItem.merger.map((item2) => {
+              return fullItem.merger.map((mergerItem) => {
                 return {
-                  startedAt: (0, import_dayjs.default)(item2.startedAt).format("YYYY-MM-DD HH:mm:ss"),
-                  endedAt: (0, import_dayjs.default)(item2.endedAt).format("YYYY-MM-DD HH:mm:ss"),
-                  cron: item2.cron
+                  id: mergerItem.id,
+                  startedAt: (0, import_dayjs.default)(mergerItem.startedAt).format("YYYY-MM-DD HH:mm:ss"),
+                  endedAt: (0, import_dayjs.default)(mergerItem.endedAt).format("YYYY-MM-DD HH:mm:ss"),
+                  cron: mergerItem.cron
                 };
               });
             }
             return [{
+              id: item.id,
               startedAt: (0, import_dayjs.default)(item.startedAt).format("YYYY-MM-DD HH:mm:ss"),
               endedAt: (0, import_dayjs.default)(item.endedAt).format("YYYY-MM-DD HH:mm:ss"),
               cron: item.cron

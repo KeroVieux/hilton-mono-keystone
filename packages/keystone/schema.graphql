@@ -610,6 +610,7 @@ type ScheduleManager {
 }
 
 type outputFields {
+  id: String
   startedAt: String
   endedAt: String
   cron: String

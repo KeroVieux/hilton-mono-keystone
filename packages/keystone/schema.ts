@@ -287,12 +287,14 @@ export const lists: Lists = {
         field: graphql.field({
           type: graphql.list(
               graphql.object<{
+                id: string
                 startedAt: string
                 endedAt: string
                 cron: string
               }>()({
                 name: 'outputFields',
                 fields: {
+                  id: graphql.field({ type: graphql.String }),
                   startedAt: graphql.field({ type: graphql.String }),
                   endedAt: graphql.field({ type: graphql.String }),
                   cron: graphql.field({ type: graphql.String }),
@@ -308,15 +310,17 @@ export const lists: Lists = {
                 },
                 query: 'id merger{id startedAt endedAt cron}'
               })
-              return fullItem.merger.map((item: { startedAt: any; endedAt: any; cron: string }) => {
+              return fullItem.merger.map((mergerItem: { startedAt: any; endedAt: any; cron: string; id:string }) => {
                 return {
-                  startedAt: dayjs(item.startedAt).format('YYYY-MM-DD HH:mm:ss'),
-                  endedAt: dayjs(item.endedAt).format('YYYY-MM-DD HH:mm:ss'),
-                  cron: item.cron,
+                  id: mergerItem.id,
+                  startedAt: dayjs(mergerItem.startedAt).format('YYYY-MM-DD HH:mm:ss'),
+                  endedAt: dayjs(mergerItem.endedAt).format('YYYY-MM-DD HH:mm:ss'),
+                  cron: mergerItem.cron,
                 }
               })
             }
             return [{
+              id: item.id,
               startedAt: dayjs(item.startedAt).format('YYYY-MM-DD HH:mm:ss'),
               endedAt: dayjs(item.endedAt).format('YYYY-MM-DD HH:mm:ss'),
               cron: item.cron,
