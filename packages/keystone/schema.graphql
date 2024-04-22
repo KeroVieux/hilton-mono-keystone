@@ -514,8 +514,8 @@ type FeatureSchedule {
   restaurantCount(where: RestaurantWhereInput! = {}): Int
   feature(where: FeatureWhereInput! = {}, orderBy: [FeatureOrderByInput!]! = [], take: Int, skip: Int! = 0, cursor: FeatureWhereUniqueInput): [Feature!]
   featureCount(where: FeatureWhereInput! = {}): Int
-  schedule(where: ScheduleWhereInput! = {}, orderBy: [ScheduleOrderByInput!]! = [], take: Int, skip: Int! = 0, cursor: ScheduleWhereUniqueInput): [Schedule!]
-  scheduleCount(where: ScheduleWhereInput! = {}): Int
+  schedule(where: ScheduleManagerWhereInput! = {}, orderBy: [ScheduleManagerOrderByInput!]! = [], take: Int, skip: Int! = 0, cursor: ScheduleManagerWhereUniqueInput): [ScheduleManager!]
+  scheduleCount(where: ScheduleManagerWhereInput! = {}): Int
   enabled: Boolean
 }
 
@@ -531,7 +531,7 @@ input FeatureScheduleWhereInput {
   name: StringFilter
   restaurant: RestaurantManyRelationFilter
   feature: FeatureManyRelationFilter
-  schedule: ScheduleManyRelationFilter
+  schedule: ScheduleManagerManyRelationFilter
   enabled: BooleanFilter
 }
 
@@ -541,10 +541,10 @@ input FeatureManyRelationFilter {
   none: FeatureWhereInput
 }
 
-input ScheduleManyRelationFilter {
-  every: ScheduleWhereInput
-  some: ScheduleWhereInput
-  none: ScheduleWhereInput
+input ScheduleManagerManyRelationFilter {
+  every: ScheduleManagerWhereInput
+  some: ScheduleManagerWhereInput
+  none: ScheduleManagerWhereInput
 }
 
 input FeatureScheduleOrderByInput {
@@ -557,7 +557,7 @@ input FeatureScheduleUpdateInput {
   name: String
   restaurant: RestaurantRelateToManyForUpdateInput
   feature: FeatureRelateToManyForUpdateInput
-  schedule: ScheduleRelateToManyForUpdateInput
+  schedule: ScheduleManagerRelateToManyForUpdateInput
   enabled: Boolean
 }
 
@@ -568,11 +568,11 @@ input FeatureRelateToManyForUpdateInput {
   connect: [FeatureWhereUniqueInput!]
 }
 
-input ScheduleRelateToManyForUpdateInput {
-  disconnect: [ScheduleWhereUniqueInput!]
-  set: [ScheduleWhereUniqueInput!]
-  create: [ScheduleCreateInput!]
-  connect: [ScheduleWhereUniqueInput!]
+input ScheduleManagerRelateToManyForUpdateInput {
+  disconnect: [ScheduleManagerWhereUniqueInput!]
+  set: [ScheduleManagerWhereUniqueInput!]
+  create: [ScheduleManagerCreateInput!]
+  connect: [ScheduleManagerWhereUniqueInput!]
 }
 
 input FeatureScheduleUpdateArgs {
@@ -584,7 +584,7 @@ input FeatureScheduleCreateInput {
   name: String
   restaurant: RestaurantRelateToManyForCreateInput
   feature: FeatureRelateToManyForCreateInput
-  schedule: ScheduleRelateToManyForCreateInput
+  schedule: ScheduleManagerRelateToManyForCreateInput
   enabled: Boolean
 }
 
@@ -593,54 +593,67 @@ input FeatureRelateToManyForCreateInput {
   connect: [FeatureWhereUniqueInput!]
 }
 
-input ScheduleRelateToManyForCreateInput {
-  create: [ScheduleCreateInput!]
-  connect: [ScheduleWhereUniqueInput!]
+input ScheduleManagerRelateToManyForCreateInput {
+  create: [ScheduleManagerCreateInput!]
+  connect: [ScheduleManagerWhereUniqueInput!]
 }
 
-type Schedule {
+type ScheduleManager {
   id: ID!
-  name: String
+  description: String
   startedAt: DateTime
   endedAt: DateTime
+  cron: String
+  merger(where: ScheduleManagerWhereInput! = {}, orderBy: [ScheduleManagerOrderByInput!]! = [], take: Int, skip: Int! = 0, cursor: ScheduleManagerWhereUniqueInput): [ScheduleManager!]
+  mergerCount(where: ScheduleManagerWhereInput! = {}): Int
+  output: [outputFields]
 }
 
-input ScheduleWhereUniqueInput {
+type outputFields {
+  startedAt: String
+  endedAt: String
+  cron: String
+}
+
+input ScheduleManagerWhereUniqueInput {
   id: ID
 }
 
-input ScheduleWhereInput {
-  AND: [ScheduleWhereInput!]
-  OR: [ScheduleWhereInput!]
-  NOT: [ScheduleWhereInput!]
+input ScheduleManagerWhereInput {
+  AND: [ScheduleManagerWhereInput!]
+  OR: [ScheduleManagerWhereInput!]
+  NOT: [ScheduleManagerWhereInput!]
   id: IDFilter
-  name: StringFilter
   startedAt: DateTimeNullableFilter
   endedAt: DateTimeNullableFilter
+  cron: StringFilter
+  merger: ScheduleManagerManyRelationFilter
 }
 
-input ScheduleOrderByInput {
+input ScheduleManagerOrderByInput {
   id: OrderDirection
-  name: OrderDirection
   startedAt: OrderDirection
   endedAt: OrderDirection
+  cron: OrderDirection
 }
 
-input ScheduleUpdateInput {
-  name: String
+input ScheduleManagerUpdateInput {
   startedAt: DateTime
   endedAt: DateTime
+  cron: String
+  merger: ScheduleManagerRelateToManyForUpdateInput
 }
 
-input ScheduleUpdateArgs {
-  where: ScheduleWhereUniqueInput!
-  data: ScheduleUpdateInput!
+input ScheduleManagerUpdateArgs {
+  where: ScheduleManagerWhereUniqueInput!
+  data: ScheduleManagerUpdateInput!
 }
 
-input ScheduleCreateInput {
-  name: String
+input ScheduleManagerCreateInput {
   startedAt: DateTime
   endedAt: DateTime
+  cron: String
+  merger: ScheduleManagerRelateToManyForCreateInput
 }
 
 type Post {
@@ -800,12 +813,12 @@ type Mutation {
   updateFeatureSchedules(data: [FeatureScheduleUpdateArgs!]!): [FeatureSchedule]
   deleteFeatureSchedule(where: FeatureScheduleWhereUniqueInput!): FeatureSchedule
   deleteFeatureSchedules(where: [FeatureScheduleWhereUniqueInput!]!): [FeatureSchedule]
-  createSchedule(data: ScheduleCreateInput!): Schedule
-  createSchedules(data: [ScheduleCreateInput!]!): [Schedule]
-  updateSchedule(where: ScheduleWhereUniqueInput!, data: ScheduleUpdateInput!): Schedule
-  updateSchedules(data: [ScheduleUpdateArgs!]!): [Schedule]
-  deleteSchedule(where: ScheduleWhereUniqueInput!): Schedule
-  deleteSchedules(where: [ScheduleWhereUniqueInput!]!): [Schedule]
+  createScheduleManager(data: ScheduleManagerCreateInput!): ScheduleManager
+  createScheduleManagers(data: [ScheduleManagerCreateInput!]!): [ScheduleManager]
+  updateScheduleManager(where: ScheduleManagerWhereUniqueInput!, data: ScheduleManagerUpdateInput!): ScheduleManager
+  updateScheduleManagers(data: [ScheduleManagerUpdateArgs!]!): [ScheduleManager]
+  deleteScheduleManager(where: ScheduleManagerWhereUniqueInput!): ScheduleManager
+  deleteScheduleManagers(where: [ScheduleManagerWhereUniqueInput!]!): [ScheduleManager]
   createPost(data: PostCreateInput!): Post
   createPosts(data: [PostCreateInput!]!): [Post]
   updatePost(where: PostWhereUniqueInput!, data: PostUpdateInput!): Post
@@ -862,9 +875,9 @@ type Query {
   featureSchedules(where: FeatureScheduleWhereInput! = {}, orderBy: [FeatureScheduleOrderByInput!]! = [], take: Int, skip: Int! = 0, cursor: FeatureScheduleWhereUniqueInput): [FeatureSchedule!]
   featureSchedule(where: FeatureScheduleWhereUniqueInput!): FeatureSchedule
   featureSchedulesCount(where: FeatureScheduleWhereInput! = {}): Int
-  schedules(where: ScheduleWhereInput! = {}, orderBy: [ScheduleOrderByInput!]! = [], take: Int, skip: Int! = 0, cursor: ScheduleWhereUniqueInput): [Schedule!]
-  schedule(where: ScheduleWhereUniqueInput!): Schedule
-  schedulesCount(where: ScheduleWhereInput! = {}): Int
+  scheduleManagers(where: ScheduleManagerWhereInput! = {}, orderBy: [ScheduleManagerOrderByInput!]! = [], take: Int, skip: Int! = 0, cursor: ScheduleManagerWhereUniqueInput): [ScheduleManager!]
+  scheduleManager(where: ScheduleManagerWhereUniqueInput!): ScheduleManager
+  scheduleManagersCount(where: ScheduleManagerWhereInput! = {}): Int
   posts(where: PostWhereInput! = {}, orderBy: [PostOrderByInput!]! = [], take: Int, skip: Int! = 0, cursor: PostWhereUniqueInput): [Post!]
   post(where: PostWhereUniqueInput!): Post
   postsCount(where: PostWhereInput! = {}): Int

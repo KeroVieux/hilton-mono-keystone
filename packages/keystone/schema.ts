@@ -1,6 +1,7 @@
 import { list, graphql } from '@keystone-6/core';
 import { allowAll } from '@keystone-6/core/access';
 import {uniqBy} from 'lodash';
+import dayjs from 'dayjs';
 import {
   text,
   relationship,
@@ -132,7 +133,7 @@ export const lists: Lists = {
               })
           ),
           async resolve(item, _, context, info) {
-            const permenantFeatureToggles = await context.query.FeatureToggle.findMany({
+            const permenantFeatures = await context.query.FeatureToggle.findMany({
                 where: {
                   "restaurant": {
                     "some": {
@@ -148,17 +149,17 @@ export const lists: Lists = {
               query: 'enabled feature{name}',
             })
             let features: any[] = []
-            if (permenantFeatureToggles.length) {
-              permenantFeatureToggles.forEach((featureToggle) => {
+            if (permenantFeatures.length) {
+              permenantFeatures.forEach((permenantFeature) => {
                 features.push({
-                  name: featureToggle.feature.name,
-                  enabled: featureToggle.enabled,
+                  name: permenantFeature.feature.name,
+                  enabled: permenantFeature.enabled,
                   definedBy: 'permenant',
                 })
               })
               features = uniqBy(features, 'name')
             }
-            const featureSchedules = await context.query.FeatureSchedule.findMany({
+            const scheduledFeatures = await context.query.FeatureSchedule.findMany({
               where: {
                 "restaurant": {
                   "some": {
@@ -183,13 +184,13 @@ export const lists: Lists = {
               }],
               query: 'enabled feature{name}',
             })
-            if (featureSchedules.length) {
-              featureSchedules.forEach((schedule) => {
-                schedule.feature.forEach((feature: { name: any; }) => {
+            if (scheduledFeatures.length) {
+              scheduledFeatures.forEach((scheduledFeature) => {
+                scheduledFeature.feature.forEach((feature: { name: any; }) => {
                     features.push({
                         name: feature.name,
-                        enabled: schedule.enabled,
-                        definedBy: 'scheduled',
+                        enabled: scheduledFeature.enabled,
+                        definedBy: 'schedule',
                     })
                 })
               })
@@ -246,21 +247,136 @@ export const lists: Lists = {
       name: text({ validation: { isRequired: true } }),
       restaurant: relationship({ ref: 'Restaurant', many: true }),
       feature: relationship({ ref: 'Feature', many: true }),
-      schedule: relationship({ ref: 'Schedule', many: true }),
+      schedule: relationship({ ref: 'ScheduleManager', many: true }),
       enabled: checkbox(),
     }
   }),
-  Schedule: list({
+  ScheduleManager: list({
     access: allowAll,
     fields: {
-      name: text({ validation: { isRequired: true } }),
+      description: virtual({
+        field: graphql.field({
+          type: graphql.String,
+          async resolve(item, _, context) {
+            let fullItem = item
+            if (!item.startedAt && !item.endedAt) {
+              fullItem = await context.query.ScheduleManager.findOne({
+                where: {
+                  id: item.id
+                },
+                query: 'id merger{id startedAt endedAt}'
+              })
+              return `Merger: ${fullItem.merger.map((item: { startedAt: any; endedAt: any; cron: string }) => `${item.startedAt} - ${item.endedAt}`).join(', ')}`
+            }
+            return `Datetime: ${item.startedAt} - ${item.endedAt}`;
+          },
+        }),
+      }),
       startedAt: timestamp({
-        defaultValue: { kind: 'now' },
         isIndexed: true,
       }),
       endedAt: timestamp({
         isIndexed: true,
       }),
+      cron: text(),
+      merger: relationship({ ref: 'ScheduleManager', many: true, ui: {
+          labelField: 'description',
+          description: 'Once the merger is selected, the startedAt and endedAt will be ignored, and only datetime items can be selected.',
+        } }),
+      output: virtual({
+        field: graphql.field({
+          type: graphql.list(
+              graphql.object<{
+                startedAt: string
+                endedAt: string
+                cron: string
+              }>()({
+                name: 'outputFields',
+                fields: {
+                  startedAt: graphql.field({ type: graphql.String }),
+                  endedAt: graphql.field({ type: graphql.String }),
+                  cron: graphql.field({ type: graphql.String }),
+                }
+              })
+          ),
+          async resolve(item, _, context) {
+            let fullItem = item
+            if (!item.startedAt && !item.endedAt) {
+              fullItem = await context.query.ScheduleManager.findOne({
+                where: {
+                  id: item.id
+                },
+                query: 'id merger{id startedAt endedAt cron}'
+              })
+              return fullItem.merger.map((item: { startedAt: any; endedAt: any; cron: string }) => {
+                return {
+                  startedAt: dayjs(item.startedAt).format('YYYY-MM-DD HH:mm:ss'),
+                  endedAt: dayjs(item.endedAt).format('YYYY-MM-DD HH:mm:ss'),
+                  cron: item.cron,
+                }
+              })
+            }
+            return [{
+              startedAt: dayjs(item.startedAt).format('YYYY-MM-DD HH:mm:ss'),
+              endedAt: dayjs(item.endedAt).format('YYYY-MM-DD HH:mm:ss'),
+              cron: item.cron,
+            }]
+          }
+        }),
+        ui: {
+          query: '{ startedAt endedAt cron }',
+          createView: { fieldMode: 'hidden' },
+          itemView: { fieldMode: 'read' },
+          listView: { fieldMode: 'hidden' },
+        }
+      }),
+    },
+    hooks: {
+      validateInput: async ({ inputData, addValidationError, context }) => {
+        if (inputData.merger) {
+          const connectIds = inputData.merger.connect.map((item: { id: any; }) => item.id)
+          const mergerItems = await context.query.ScheduleManager.findMany({
+            where: {
+              id: {
+                in: connectIds
+              }
+            },
+            query: 'id startedAt endedAt merger{id}'
+          })
+          mergerItems.forEach((item: { startedAt: any; endedAt: any; merger: any; }) => {
+            if (item.merger.length) {
+              addValidationError('Merger field should not have merger mode items');
+            }
+          })
+        }
+        // check if startedAt and endedAt and merger is empty
+        if (!inputData.startedAt && !inputData.endedAt && !inputData.merger) {
+          addValidationError('Time mode(startedAt and endedAt) or merger mode(Merger) should choose one');
+        }
+        // check if startedAt is not empty, endedAt should not be empty
+        if (inputData.startedAt && !inputData.endedAt) {
+          addValidationError('EndedAt should not be empty');
+        }
+        // check if the startedAt is greater than endedAt
+        if (inputData.startedAt && inputData.endedAt) {
+          if (dayjs(inputData.startedAt).isAfter(dayjs(inputData.endedAt))) {
+            addValidationError('StartedAt should be less than EndedAt');
+          }
+        }
+        // check if the merger is not empty, cron should be empty
+        if (inputData.merger && inputData.cron) {
+          addValidationError('Merger is not empty, cron should be empty');
+        }
+        // check if the merger length is greater or equal to 2
+        if (inputData.merger && inputData.merger.connect.length < 2) {
+          addValidationError('Merger should be greater or equal to 2');
+        }
+      },
+    },
+    ui: {
+      itemView: {
+        defaultFieldMode: 'read',
+      },
     }
   }),
   Post: list({

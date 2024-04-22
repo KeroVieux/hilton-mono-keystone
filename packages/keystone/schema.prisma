@@ -83,20 +83,22 @@ model FeatureToggle {
 }
 
 model FeatureSchedule {
-  id         String       @id @default(cuid())
-  name       String       @default("")
-  restaurant Restaurant[] @relation("FeatureSchedule_restaurant")
-  feature    Feature[]    @relation("FeatureSchedule_feature")
-  schedule   Schedule[]   @relation("FeatureSchedule_schedule")
-  enabled    Boolean      @default(false)
+  id         String            @id @default(cuid())
+  name       String            @default("")
+  restaurant Restaurant[]      @relation("FeatureSchedule_restaurant")
+  feature    Feature[]         @relation("FeatureSchedule_feature")
+  schedule   ScheduleManager[] @relation("FeatureSchedule_schedule")
+  enabled    Boolean           @default(false)
 }
 
-model Schedule {
+model ScheduleManager {
   id                            String            @id @default(cuid())
-  name                          String            @default("")
-  startedAt                     DateTime?         @default(now())
+  startedAt                     DateTime?
   endedAt                       DateTime?
+  cron                          String            @default("")
+  merger                        ScheduleManager[] @relation("ScheduleManager_merger")
   from_FeatureSchedule_schedule FeatureSchedule[] @relation("FeatureSchedule_schedule")
+  from_ScheduleManager_merger   ScheduleManager[] @relation("ScheduleManager_merger")
 
   @@index([startedAt])
   @@index([endedAt])

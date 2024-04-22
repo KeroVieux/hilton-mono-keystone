@@ -1,7 +1,9 @@
 "use strict";
+var __create = Object.create;
 var __defProp = Object.defineProperty;
 var __getOwnPropDesc = Object.getOwnPropertyDescriptor;
 var __getOwnPropNames = Object.getOwnPropertyNames;
+var __getProtoOf = Object.getPrototypeOf;
 var __hasOwnProp = Object.prototype.hasOwnProperty;
 var __export = (target, all) => {
   for (var name in all)
@@ -15,6 +17,14 @@ var __copyProps = (to, from, except, desc) => {
   }
   return to;
 };
+var __toESM = (mod, isNodeMode, target) => (target = mod != null ? __create(__getProtoOf(mod)) : {}, __copyProps(
+  // If the importer is in node compatibility mode or this is not an ESM
+  // file that has been converted to a CommonJS file using a Babel-
+  // compatible transform (i.e. "__esModule" has not been set), then set
+  // "default" to the CommonJS "module.exports" for node compatibility.
+  isNodeMode || !mod || !mod.__esModule ? __defProp(target, "default", { value: mod, enumerable: true }) : target,
+  mod
+));
 var __toCommonJS = (mod) => __copyProps(__defProp({}, "__esModule", { value: true }), mod);
 
 // keystone.ts
@@ -29,6 +39,7 @@ var import_core2 = require("@keystone-6/core");
 var import_core = require("@keystone-6/core");
 var import_access = require("@keystone-6/core/access");
 var import_lodash = require("lodash");
+var import_dayjs = __toESM(require("dayjs"));
 var import_fields = require("@keystone-6/core/fields");
 var import_fields_document = require("@keystone-6/fields-document");
 var lists = {
@@ -147,7 +158,7 @@ var lists = {
             })
           ),
           async resolve(item, _, context, info) {
-            const permenantFeatureToggles = await context.query.FeatureToggle.findMany({
+            const permenantFeatures = await context.query.FeatureToggle.findMany({
               where: {
                 "restaurant": {
                   "some": {
@@ -163,17 +174,17 @@ var lists = {
               query: "enabled feature{name}"
             });
             let features = [];
-            if (permenantFeatureToggles.length) {
-              permenantFeatureToggles.forEach((featureToggle) => {
+            if (permenantFeatures.length) {
+              permenantFeatures.forEach((permenantFeature) => {
                 features.push({
-                  name: featureToggle.feature.name,
-                  enabled: featureToggle.enabled,
+                  name: permenantFeature.feature.name,
+                  enabled: permenantFeature.enabled,
                   definedBy: "permenant"
                 });
               });
               features = (0, import_lodash.uniqBy)(features, "name");
             }
-            const featureSchedules = await context.query.FeatureSchedule.findMany({
+            const scheduledFeatures = await context.query.FeatureSchedule.findMany({
               where: {
                 "restaurant": {
                   "some": {
@@ -198,13 +209,13 @@ var lists = {
               }],
               query: "enabled feature{name}"
             });
-            if (featureSchedules.length) {
-              featureSchedules.forEach((schedule) => {
-                schedule.feature.forEach((feature) => {
+            if (scheduledFeatures.length) {
+              scheduledFeatures.forEach((scheduledFeature) => {
+                scheduledFeature.feature.forEach((feature) => {
                   features.push({
                     name: feature.name,
-                    enabled: schedule.enabled,
-                    definedBy: "scheduled"
+                    enabled: scheduledFeature.enabled,
+                    definedBy: "schedule"
                   });
                 });
               });
@@ -261,21 +272,127 @@ var lists = {
       name: (0, import_fields.text)({ validation: { isRequired: true } }),
       restaurant: (0, import_fields.relationship)({ ref: "Restaurant", many: true }),
       feature: (0, import_fields.relationship)({ ref: "Feature", many: true }),
-      schedule: (0, import_fields.relationship)({ ref: "Schedule", many: true }),
+      schedule: (0, import_fields.relationship)({ ref: "ScheduleManager", many: true }),
       enabled: (0, import_fields.checkbox)()
     }
   }),
-  Schedule: (0, import_core.list)({
+  ScheduleManager: (0, import_core.list)({
     access: import_access.allowAll,
     fields: {
-      name: (0, import_fields.text)({ validation: { isRequired: true } }),
+      description: (0, import_fields.virtual)({
+        field: import_core.graphql.field({
+          type: import_core.graphql.String,
+          async resolve(item, _, context) {
+            let fullItem = item;
+            if (!item.startedAt && !item.endedAt) {
+              fullItem = await context.query.ScheduleManager.findOne({
+                where: {
+                  id: item.id
+                },
+                query: "id merger{id startedAt endedAt}"
+              });
+              return `Merger: ${fullItem.merger.map((item2) => `${item2.startedAt} - ${item2.endedAt}`).join(", ")}`;
+            }
+            return `Datetime: ${item.startedAt} - ${item.endedAt}`;
+          }
+        })
+      }),
       startedAt: (0, import_fields.timestamp)({
-        defaultValue: { kind: "now" },
         isIndexed: true
       }),
       endedAt: (0, import_fields.timestamp)({
         isIndexed: true
+      }),
+      cron: (0, import_fields.text)(),
+      merger: (0, import_fields.relationship)({ ref: "ScheduleManager", many: true, ui: {
+        labelField: "description",
+        description: "Once the merger is selected, the startedAt and endedAt will be ignored, and only datetime items can be selected."
+      } }),
+      output: (0, import_fields.virtual)({
+        field: import_core.graphql.field({
+          type: import_core.graphql.list(
+            import_core.graphql.object()({
+              name: "outputFields",
+              fields: {
+                startedAt: import_core.graphql.field({ type: import_core.graphql.String }),
+                endedAt: import_core.graphql.field({ type: import_core.graphql.String }),
+                cron: import_core.graphql.field({ type: import_core.graphql.String })
+              }
+            })
+          ),
+          async resolve(item, _, context) {
+            let fullItem = item;
+            if (!item.startedAt && !item.endedAt) {
+              fullItem = await context.query.ScheduleManager.findOne({
+                where: {
+                  id: item.id
+                },
+                query: "id merger{id startedAt endedAt cron}"
+              });
+              return fullItem.merger.map((item2) => {
+                return {
+                  startedAt: (0, import_dayjs.default)(item2.startedAt).format("YYYY-MM-DD HH:mm:ss"),
+                  endedAt: (0, import_dayjs.default)(item2.endedAt).format("YYYY-MM-DD HH:mm:ss"),
+                  cron: item2.cron
+                };
+              });
+            }
+            return [{
+              startedAt: (0, import_dayjs.default)(item.startedAt).format("YYYY-MM-DD HH:mm:ss"),
+              endedAt: (0, import_dayjs.default)(item.endedAt).format("YYYY-MM-DD HH:mm:ss"),
+              cron: item.cron
+            }];
+          }
+        }),
+        ui: {
+          query: "{ startedAt endedAt cron }",
+          createView: { fieldMode: "hidden" },
+          itemView: { fieldMode: "read" },
+          listView: { fieldMode: "hidden" }
+        }
       })
+    },
+    hooks: {
+      validateInput: async ({ inputData, addValidationError, context }) => {
+        if (inputData.merger) {
+          const connectIds = inputData.merger.connect.map((item) => item.id);
+          const mergerItems = await context.query.ScheduleManager.findMany({
+            where: {
+              id: {
+                in: connectIds
+              }
+            },
+            query: "id startedAt endedAt merger{id}"
+          });
+          mergerItems.forEach((item) => {
+            if (item.merger.length) {
+              addValidationError("Merger field should not have merger mode items");
+            }
+          });
+        }
+        if (!inputData.startedAt && !inputData.endedAt && !inputData.merger) {
+          addValidationError("Time mode(startedAt and endedAt) or merger mode(Merger) should choose one");
+        }
+        if (inputData.startedAt && !inputData.endedAt) {
+          addValidationError("EndedAt should not be empty");
+        }
+        if (inputData.startedAt && inputData.endedAt) {
+          if ((0, import_dayjs.default)(inputData.startedAt).isAfter((0, import_dayjs.default)(inputData.endedAt))) {
+            addValidationError("StartedAt should be less than EndedAt");
+          }
+        }
+        if (inputData.merger && inputData.cron) {
+          addValidationError("Merger is not empty, cron should be empty");
+        }
+        if (inputData.merger && inputData.merger.connect.length < 2) {
+          addValidationError("Merger should be greater or equal to 2");
+        }
+      }
+    },
+    ui: {
+      itemView: {
+        defaultFieldMode: "read"
+      }
     }
   }),
   Post: (0, import_core.list)({
